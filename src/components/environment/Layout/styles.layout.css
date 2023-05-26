@@ -1,0 +1,19 @@
+.root {
+    margin-top: 44px;
+    min-height: calc(100vh - 134px);
+}
+
+.header {
+    text-decoration: none;
+}
+
+.main {
+    background-color: 'background.paper';
+    /* padding-top: 64px;
+    padding-bottom: 48px; */
+}
+
+.footer {
+    background-color: 'background.paper';
+    padding: 48px,
+}
