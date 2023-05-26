@@ -20,6 +20,8 @@ import { fetchProductList } from '../../../store/productSlice';
 import { fetchMarketList } from '../../../store/marketSlice';
 import { fetchChecklistList, fetchChecklistById } from '../../../store/checklistSlice';
 
+const basename = process.env.REACT_APP_BASENAME || '/';
+
 const getRouter = (dispatch) => createBrowserRouter([
     {
         path: '/',
@@ -103,7 +105,7 @@ const getRouter = (dispatch) => createBrowserRouter([
         element: <Navigate to="/" />,
     },
 ], {
-    basename: '/checklist',
+    basename: basename,
 });
 
 function Main() {
