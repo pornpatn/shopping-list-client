@@ -36,7 +36,7 @@ export const updateMarket = async (data) => doPatch('/market', data);
 export const deleteMarket = async (id) => doDelete('/market', id);
 
 // Products
-export const fetchProducts = async () => doGet('/product');
+export const fetchProducts = async () => doGet('/product?limit=100');
 
 export const createProduct = async (data) => doPost('/product', data);
 

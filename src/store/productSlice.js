@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { createAsyncThunk, createSlice, isRejectedWithValue } from '@reduxjs/toolkit';
 import ChecklistAPI from '../api/checklistAPI';
 
@@ -20,7 +21,7 @@ export const fetchProductList = createAsyncThunk('product/fetchProductList', asy
     if (!result.success) {
         return isRejectedWithValue(result);
     }
-    return result.data;
+    return _.sortBy(result.data, ['category', 'name']);
 });
 
 export const createProduct = createAsyncThunk('product/createProduct', async ({ data }) => {

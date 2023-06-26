@@ -216,7 +216,7 @@ function ProductSettings() {
             }
 
             return (
-                <List key={category} subheader={<ListSubheader>{category}</ListSubheader>}>
+                <List key={category} subheader={<ListSubheader color="primary" disableGutters>{category}</ListSubheader>}>
                     {renderItems(itemsToRender)}
                 </List>
             )
