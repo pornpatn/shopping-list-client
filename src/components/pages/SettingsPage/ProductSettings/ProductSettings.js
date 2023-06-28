@@ -6,6 +6,10 @@ import Container from '@mui/material/Container';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select from '@mui/material/Select';
 import List from '@mui/material/List';
 import ListSubheader from '@mui/material/ListSubheader';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -23,10 +27,13 @@ import {
     deleteProduct as deleteItem,
     selectProducts as selectItems,
     NEW_PRODUCT_TEMPLATE as NEW_ITEM_TEMPLETE,
+    fetchProductList,
 } from '../../../../store/productSlice';
-import { selectCategories, fetchCategoryList } from '../../../../store/categorySlice';
+import { selectCategories } from '../../../../store/categorySlice';
 import { selectTags, fetchTagList } from '../../../../store/tagSlice';
 import useSessionHook from '../../../../hooks/useSessionHook';
+
+const DEFAULT_UNITS = ['case', 'each'];
 
 function ProductSettings() {
     const dispatch = useDispatch();
@@ -34,10 +41,9 @@ function ProductSettings() {
     const categories = useSelector(selectCategories);
     const tags = useSelector(selectTags);
     const [selectedItem, setSelectedItem] = useState({});
-
-    const [itemCategory, setItemCategory] = useState(null);
-
+    const [itemCategoryId, setItemCategoryId] = useState(null);
     const [itemTags, setItemTags] = useState([]);
+    const [itemUnits, setItemUnits] = useState([]);
 
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -61,7 +67,7 @@ function ProductSettings() {
         {
             name: 'category',
             label: 'Filter by Categories',
-            options: categories.map(category => ({ id: category, label: category })),
+            options: categories.map(category => ({ id: category._id, label: category.name })),
             selected: checkedCategories,
         },
         {
@@ -117,21 +123,22 @@ function ProductSettings() {
         const searchTerm = search.toLowerCase();
 
         const isMatched = (product) => product.name.toLowerCase().includes(searchTerm)
-            && ((checkedCategories.length === 0) || checkedCategories.includes(product.category))
+            && ((checkedCategories.length === 0) || checkedCategories.includes(product.category?._id))
             && ((checkedTags.length === 0) || product.tags.find(tag => checkedTags.includes(tag)));
 
         return entities.filter(product => isMatched(product));
     }, [entities, search, checkedCategories, checkedTags]);
 
-    const refreshCategoriesAndTags = () => {
-        dispatch(fetchCategoryList());
+    const refreshData = () => {
         dispatch(fetchTagList());
+        dispatch(fetchProductList());
     };
 
     const handleCreateClick = () => {
         setSelectedItem({ ...NEW_ITEM_TEMPLETE });
-        setItemCategory(null);
+        setItemCategoryId(null);
         setItemTags([]);
+        setItemUnits([]);
         setCreateDialogOpen(true);
     };
 
@@ -143,20 +150,26 @@ function ProductSettings() {
         e.preventDefault();
         const newItem = {
             ...selectedItem,
-            category: itemCategory,
+            category: {
+                _id: itemCategoryId,
+            },
             tags: itemTags,
+            units: itemUnits,
+            // TODO: market codes
         };
         dispatch(createItem({ data: newItem })).unwrap();
         setCreateDialogOpen(false);
-        refreshCategoriesAndTags();
+        refreshData();
     };
 
     const handleItemClick = (id) => {
         const foundItem = entities.find(item => item._id === id);
         if (foundItem) {
             setSelectedItem(foundItem);
-            setItemCategory(foundItem.category);
+            setItemCategoryId(foundItem.category?._id);
             setItemTags(foundItem.tags);
+            setItemUnits(foundItem.units);
+            // TODO: market codes
             setEditDialogOpen(true);
         }
     };
@@ -169,12 +182,16 @@ function ProductSettings() {
         e.preventDefault();
         const updatedItem = {
             ...selectedItem,
-            category: itemCategory,
+            category: {
+                _id: itemCategoryId,
+            },
             tags: itemTags,
+            units: itemUnits,
+            // TODO: market codes
         };
         dispatch(updateItem({ data: updatedItem })).then(() => {
             setEditDialogOpen(false);
-            refreshCategoriesAndTags();
+            refreshData();
         });
     };
 
@@ -210,13 +227,13 @@ function ProductSettings() {
 
     const renderItemsByCategories = () => {
         return categories.map((category) => {
-            const itemsToRender = products.filter(item => item.category === category);
+            const itemsToRender = products.filter(item => item.category?._id === category._id);
             if (itemsToRender.length === 0) {
                 return null;
             }
 
             return (
-                <List key={category} subheader={<ListSubheader color="primary" disableGutters>{category}</ListSubheader>}>
+                <List key={category._id} subheader={<ListSubheader color="primary" disableGutters>{category.name}</ListSubheader>}>
                     {renderItems(itemsToRender)}
                 </List>
             )
@@ -224,13 +241,14 @@ function ProductSettings() {
     };
 
     const renderItemsWithoutCategories = () => {
-        const itemsToRender = products.filter(item => !categories.includes(item.category));
+        const categoryIds = categories.map(category => category._id);
+        const itemsToRender = products.filter(item => !categoryIds.includes(item.category?._id));
         if (itemsToRender.length === 0) {
             return null;
         }
 
         return (
-            <List key={'no-category'} subheader={<ListSubheader>No Category</ListSubheader>}>
+            <List key={'no-category'} subheader={<ListSubheader disableGutters>No Category</ListSubheader>}>
                 {renderItems(itemsToRender)}
             </List>
         );
@@ -244,26 +262,36 @@ function ProductSettings() {
                 fullWidth
                 required
                 value={selectedItem.name}
+                onFocus={(e) => { e.target.select(); }}
                 onChange={(e) => { setSelectedItem({ ...selectedItem, name: e.target.value }) }}
                 margin="normal"
             />
-            <Autocomplete
-                id="category"
-                label="Category"
+            <FormControl fullWidth>
+                <InputLabel id="category-label">Category</InputLabel>
+                <Select
+                    id="category"
+                    labelId="category-lebel"
+                    value={itemCategoryId}
+                    label="Category"
+                    onChange={(event) => {
+                        setItemCategoryId(event.target.value);
+                    }}
+                >
+                    {categories.map((category) => (
+                        <MenuItem value={category._id}>{category.name}</MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
+            <TextField
+                id="order"
+                label="Order"
                 fullWidth
-                disablePortal
-                freeSolo
-                value={itemCategory}
-                onChange={(_event, newValue) => {
-                    setItemCategory(newValue);
-                }}
-                onInputChange={(_event, newInputValue) => {
-                    setItemCategory(newInputValue);
-                }}
-                options={categories}
-                renderInput={(params) => (
-                    <TextField {...params} label="Category" margin="normal" />
-                )}
+                value={selectedItem.order}
+                onFocus={(e) => { e.target.select(); }}
+                onChange={(e) => { setSelectedItem({ ...selectedItem, order: e.target.value }) }}
+                margin="normal"
+                type="number"
+                inputProps={{ min: 0, inputMode: 'numeric', pattern: '[0-9]*' }}
             />
             <Autocomplete
                 id="tags"
@@ -286,6 +314,28 @@ function ProductSettings() {
                     <TextField {...params} label="Tags" margin="normal" />
                 )}
             />
+            <Autocomplete
+                id="units"
+                label="Units"
+                multiple
+                fullWidth
+                disablePortal
+                freeSolo
+                value={itemUnits}
+                onChange={(_event, newValue) => {
+                    setItemUnits(newValue);
+                }}
+                options={DEFAULT_UNITS}
+                renderTags={(value, getTagProps) =>
+                    value.map((option, index) => (
+                        <Chip variant="outlined" label={option} {...getTagProps({ index })} />
+                    ))
+                }
+                renderInput={(params) => (
+                    <TextField {...params} label="Units" margin="normal" />
+                )}
+            />
+            {/* TODO: Market Codes */}
             <TextField
                 id="content"
                 label="Content"

@@ -83,6 +83,15 @@ function ChecklistReviewPage() {
                             >
                                 {item.qty}
                             </Typography>
+                            {item.unit && (
+                                <Typography
+                                    sx={{ display: 'inline', width: 40, paddingRight: 1 }}
+                                    component="span"
+                                    variant="body2"
+                                >
+                                    ({item.unit})
+                                </Typography>
+                            )}
                             <Typography
                                 sx={{ display: 'inline' }}
                                 component="span"
@@ -98,7 +107,7 @@ function ChecklistReviewPage() {
     };
 
     const renderByCategory = (category) => {
-        const productsToRender = products.filter(product => product.category === category);
+        const productsToRender = products.filter(product => product.category?._id === category._id);
         if (productsToRender.length === 0) {
             return null;
         }
@@ -110,7 +119,7 @@ function ChecklistReviewPage() {
         }
 
         return (
-            <List key={category} dense disablePadding subheader={category}>
+            <List key={category._id} dense disablePadding subheader={category.name}>
                 {itemsToRender.map(item => renderItemRow(item))}
             </List>
         );
