@@ -17,6 +17,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
@@ -260,15 +261,17 @@ function ProductSettings() {
                     onClick={() => handleItemClick(item._id)}
                 >
                     <ListItemText
+                        paragraph={false}
                         primary={item.name}
                         secondary={(
                             <React.Fragment>
+                                {item.content && (
+                                    <Typography variant="body2" component="span" sx={{display: 'block'}}>{item.content}</Typography>
+                                )}
                                 {(item.units.length > 0) && (
-                                    <span><span>units: </span>{item.units.join(', ')}</span>
+                                    <Typography variant="body2" component="span">units: {item.units.join(', ')}</Typography>
                                 )}
-                                {(item.tags.length > 0) && (
-                                    <span><span>tags: </span>{item.tags.join(', ')}</span>
-                                )}
+                                {item.tags.map(tag => <Chip label={tag} size="small" sx={{ margin: 0.5 }} />)}
                             </React.Fragment>
                         )}
                     />
@@ -336,7 +339,7 @@ function ProductSettings() {
             </FormControl>
             <TextField
                 id="order"
-                label="Order"
+                label="Priority"
                 fullWidth
                 value={selectedItem.order}
                 onFocus={(e) => { e.target.select(); }}
