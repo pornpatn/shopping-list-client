@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 import InputLabel from '@mui/material/InputLabel';
@@ -12,10 +13,14 @@ import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import List from '@mui/material/List';
 import ListSubheader from '@mui/material/ListSubheader';
+import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
+import RemoveIcon from '@mui/icons-material/Remove';
+import AddIcon from '@mui/icons-material/Add';
 import { useConfirm } from "material-ui-confirm";
 import PageHeader from '../../../molecules/PageHeader';
 import Search from '../../../molecules/Search';
@@ -33,7 +38,7 @@ import { selectCategories } from '../../../../store/categorySlice';
 import { selectTags, fetchTagList } from '../../../../store/tagSlice';
 import useSessionHook from '../../../../hooks/useSessionHook';
 
-const DEFAULT_UNITS = ['case', 'each'];
+const DEFAULT_UNITS = ['case', 'each', 'pack', 'bag'];
 
 function ProductSettings() {
     const dispatch = useDispatch();
@@ -114,7 +119,7 @@ function ProductSettings() {
     //     direction: 'asc',
     //     sorter: null,
     // });
-    
+
     // const handleSortersChange = (event) => {
     //     setSortBy(event.target);
     // };
@@ -206,22 +211,72 @@ function ProductSettings() {
             });
     };
 
+    const handleOrderMinusClick = (item) => (e) => {
+        e.preventDefault();
+        const order = (item.order ?? 0) - 1;
+        const updatedItem = {
+            ...item,
+            order,
+        };
+        dispatch(updateItem({ data: updatedItem })).then(() => {
+            refreshData();
+        });
+    };
+
+    const handleOrderPlusClick = (item) => (e) => {
+        e.preventDefault();
+        const order = (item.order ?? 0) + 1;
+        const updatedItem = {
+            ...item,
+            order,
+        };
+        dispatch(updateItem({ data: updatedItem })).then(() => {
+            refreshData();
+        });
+    };
+
     const renderItems = (items) => {
         if (items.length === 0) {
             return null;
         }
 
         return items.map(item => (
-            <ListItemButton
+            <ListItem
                 key={item._id}
-                onClick={() => handleItemClick(item._id)}
                 divider
+                disablePadding
+                secondaryAction={
+                    <div>
+                        <IconButton onClick={handleOrderMinusClick(item)}>
+                            <RemoveIcon />
+                        </IconButton>
+                        <Chip label={item.order ?? '-'} variant="outlined" color="default" />
+                        <IconButton onClick={handleOrderPlusClick(item)}>
+                            <AddIcon />
+                        </IconButton>
+                    </div>
+                }
             >
-                <ListItemText
-                    primary={item.name}
-                    secondary={item.tags.join(', ')}
-                />
-            </ListItemButton>
+                <ListItemButton
+                    onClick={() => handleItemClick(item._id)}
+                >
+                    <ListItemText
+                        paragraph={false}
+                        primary={item.name}
+                        secondary={(
+                            <React.Fragment>
+                                {item.content && (
+                                    <Typography variant="body2" component="span" sx={{display: 'block'}}>{item.content}</Typography>
+                                )}
+                                {(item.units.length > 0) && (
+                                    <Typography variant="body2" component="span">units: {item.units.join(', ')}</Typography>
+                                )}
+                                {item.tags.map(tag => <Chip label={tag} size="small" sx={{ margin: 0.5 }} />)}
+                            </React.Fragment>
+                        )}
+                    />
+                </ListItemButton>
+            </ListItem>
         ));
     };
 
@@ -278,13 +333,13 @@ function ProductSettings() {
                     }}
                 >
                     {categories.map((category) => (
-                        <MenuItem value={category._id}>{category.name}</MenuItem>
+                        <MenuItem key={category._id} value={category._id}>{category.name}</MenuItem>
                     ))}
                 </Select>
             </FormControl>
             <TextField
                 id="order"
-                label="Order"
+                label="Priority"
                 fullWidth
                 value={selectedItem.order}
                 onFocus={(e) => { e.target.select(); }}
@@ -369,9 +424,9 @@ function ProductSettings() {
                     <ProductFilter
                         filters={filters}
                         onFiltersChange={handleFiltersChange}
-                        // sortBy={sortBy}
-                        // sorters={sorters}
-                        // onSortersChange={handleSortersChange}
+                    // sortBy={sortBy}
+                    // sorters={sorters}
+                    // onSortersChange={handleSortersChange}
                     />
                 </Toolbar>
 
