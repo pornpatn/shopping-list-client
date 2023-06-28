@@ -292,6 +292,12 @@ function ChecklistCheckingPage() {
                         </IconButton>
                     )}
                 </div>
+                <ButtonBase
+                    style={{ flexGrow: 1, justifyContent: 'flex-start' }}
+                    onClick={() => handleItemClick(product)}
+                >
+                    <Typography variant="body1">{product.name}</Typography>
+                </ButtonBase>
                 {(product.units?.length > 1) && (
                     <Button
                         variant="outlined"
@@ -301,12 +307,6 @@ function ChecklistCheckingPage() {
                         {unit}
                     </Button>
                 )}
-                <ButtonBase
-                    style={{ flexGrow: 1, justifyContent: 'flex-start' }}
-                    onClick={() => handleItemClick(product)}
-                >
-                    <Typography variant="body1">{product.name}</Typography>
-                </ButtonBase>
                 {item.checked ? (
                     <IconButton
                         size="small"
