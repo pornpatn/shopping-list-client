@@ -292,7 +292,7 @@ function ChecklistCheckingPage() {
                         </IconButton>
                     )}
                 </div>
-                {(product.units?.length > 0) && (
+                {(product.units?.length > 1) && (
                     <Button
                         variant="outlined"
                         size="small"
