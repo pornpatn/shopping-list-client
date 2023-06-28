@@ -12,15 +12,15 @@ import { useConfirm } from "material-ui-confirm";
 import PageHeader from '../../../molecules/PageHeader';
 import FormDialog from '../../../molecules/FormDialog';
 import {
-    createMarket as createItem,
-    updateMarket as updateItem,
-    deleteMarket as deleteItem,
-    selectMarkets as selectItems,
-    NEW_MARKET_TEMPLATE as NEW_ITEM_TEMPLATE,
-} from '../../../../store/marketSlice';
+    createCategory as createItem,
+    updateCategory as updateItem,
+    deleteCategory as deleteItem,
+    selectCategories as selectItems,
+    NEW_CATEGORY_TEMPLATE as NEW_ITEM_TEMPLATE,
+} from '../../../../store/categorySlice';
 import useSessionHook from '../../../../hooks/useSessionHook';
 
-function MarketSettings() {
+function CategorySettings() {
     const dispatch = useDispatch();
     const entities = useSelector(selectItems);
     const [selectedItem, setSelectedItem] = useState({});
@@ -54,9 +54,9 @@ function MarketSettings() {
     };
 
     const handleItemClick = (id) => {
-        const selectedMarket = entities.find(item => item._id === id);
-        if (selectedMarket) {
-            setSelectedItem(selectedMarket);
+        const selectedCategory = entities.find(item => item._id === id);
+        if (selectedCategory) {
+            setSelectedItem(selectedCategory);
             setEditDialogOpen(true);
         }
     };
@@ -95,6 +95,17 @@ function MarketSettings() {
                 margin="normal"
             />
             <TextField
+                id="order"
+                label="Order"
+                fullWidth
+                value={selectedItem.order}
+                onFocus={(e) => { e.target.select(); }}
+                onChange={(e) => { setSelectedItem({ ...selectedItem, order: e.target.value }) }}
+                margin="normal"
+                type="number"
+                inputProps={{ min: 0, inputMode: 'numeric', pattern: '[0-9]*' }}
+            />
+            <TextField
                 id="content"
                 label="Content"
                 fullWidth
@@ -110,7 +121,7 @@ function MarketSettings() {
     return (
         <React.Fragment>
             <Container maxWidth="xl" disableGutters>
-                <PageHeader title="Markets">
+                <PageHeader title="Categorys">
                     <Button
                         size="small"
                         variant="contained"
@@ -148,7 +159,7 @@ function MarketSettings() {
                 open={createDialogOpen}
                 onClose={handleCreateDialogClose}
                 onSave={handleCreateSave}
-                title={'Create Market'}
+                title={'Create Category'}
             >
                 <Box component={'form'} onSubmit={handleCreateSave}>
                     {renderFormContent()}
@@ -159,7 +170,7 @@ function MarketSettings() {
                 open={editDialogOpen}
                 onClose={handleEditDialogClose}
                 onSave={handleEditSave}
-                title={'Edit Market'}
+                title={'Edit Category'}
             >
                 <Box component={'form'} onSubmit={handleEditSave}>
                     {renderFormContent()}
@@ -176,4 +187,4 @@ function MarketSettings() {
     );
 }
 
-export default MarketSettings;
+export default CategorySettings;

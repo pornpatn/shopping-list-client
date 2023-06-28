@@ -12,6 +12,7 @@ import ChecklistPage from '../../pages/ChecklistPage';
 import ChecklistCheckingPage from '../../pages/ChecklistPage/ChecklistCheckingPage';
 import ChecklistReviewPage from '../../pages/ChecklistPage/ChecklistReviewPage';
 import SettingsPage from '../../pages/SettingsPage';
+import CategorySettings from '../../pages/SettingsPage/CategorySettings';
 import ProductSettings from '../../pages/SettingsPage/ProductSettings';
 import MarketSettings from '../../pages/SettingsPage/MarketSettings';
 import { fetchCategoryList } from '../../../store/categorySlice';
@@ -80,6 +81,14 @@ const getRouter = (dispatch) => createBrowserRouter([
                     {
                         index: true,
                         element: <SettingsPage />
+                    },
+                    {
+                        path: 'categories',
+                        element: <CategorySettings />,
+                        loader: () => {
+                            dispatch(fetchCategoryList());
+                            return null;
+                        }
                     },
                     {
                         path: 'products',

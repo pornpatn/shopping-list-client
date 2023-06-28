@@ -36,7 +36,7 @@ export const updateMarket = async (data) => doPatch('/market', data);
 export const deleteMarket = async (id) => doDelete('/market', id);
 
 // Products
-export const fetchProducts = async () => doGet('/product?limit=100');
+export const fetchProducts = async () => doGet('/product?limit=1000');
 
 export const createProduct = async (data) => doPost('/product', data);
 
@@ -46,6 +46,12 @@ export const deleteProduct = async (id) => doDelete('/product', id);
 
 // Categories
 export const fetchCategories = async () => doGet('/category');
+
+export const createCategory = async (data) => doPost('/category', data);
+
+export const updateCategory = async (data) => doPatch('/category', data);
+
+export const deleteCategory = async (id) => doDelete('/category', id);
 
 // Tags
 export const fetchTags = async () => doGet('/tag');
@@ -64,7 +70,7 @@ export const deleteChecklist = async (id) => doDelete('checklist', id);
 const ChecklistAPI = {
 fetchMarkets, createMarket, updateMarket, deleteMarket,
     fetchProducts, createProduct, updateProduct, deleteProduct,
-    fetchCategories, 
+    fetchCategories, createCategory, updateCategory, deleteCategory,
     fetchTags, 
     fetchChecklists, fetchChecklistById, createChecklist, updateChecklist, deleteChecklist,
 };

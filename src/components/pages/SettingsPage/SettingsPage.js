@@ -12,6 +12,11 @@ import useSessionHook from '../../../hooks/useSessionHook';
 
 const cards = [
     {
+        path: 'categories',
+        title: 'Categories',
+        description: 'Manage categories',
+    },
+    {
         path: 'products',
         title: 'Products',
         description: 'Manage products',

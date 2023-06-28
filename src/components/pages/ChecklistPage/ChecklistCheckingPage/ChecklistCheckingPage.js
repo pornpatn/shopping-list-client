@@ -6,6 +6,10 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select from '@mui/material/Select';
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -30,6 +34,7 @@ import FormDialog from '../../../molecules/FormDialog';
 
 const EMPTY_ITEM = {
     qty: 0,
+    unit: '',
     checked: false,
 };
 
@@ -37,7 +42,7 @@ function ChecklistCheckingPage() {
     const navigate = useNavigate();
     const { id: checkListId } = useParams();
     const dispatch = useDispatch();
-    
+
     const { isLogin } = useSessionHook();
     useEffect(() => {
         if (!isLogin) {
@@ -62,14 +67,21 @@ function ChecklistCheckingPage() {
 
     const [search, setSearch] = useState("");
 
+    const [hiddenFilters, setHiddenFilters] = useState([]);
     const [checkedCategories, setCheckedCategories] = useState([]);
     const [checkedTags, setCheckedTags] = useState([]);
 
     const filters = [
         {
+            name: 'hidden',
+            label: 'Show / Hide',
+            options: [{ id: 'checked', label: 'Hide Checked' }],
+            selected: hiddenFilters,
+        },
+        {
             name: 'category',
             label: 'Filter by Categories',
-            options: categories.map(category => ({ id: category, label: category })),
+            options: categories.map(category => ({ id: category._id, label: category.name })),
             selected: checkedCategories,
         },
         {
@@ -86,6 +98,8 @@ function ChecklistCheckingPage() {
             setCheckedCategories(selected);
         } else if (name === 'tag') {
             setCheckedTags(selected);
+        } else if (name === 'hidden') {
+            setHiddenFilters(selected);
         }
     };
 
@@ -93,7 +107,7 @@ function ChecklistCheckingPage() {
         const searchTerm = search.toLowerCase();
 
         const isMatched = (product) => product.name.toLowerCase().includes(searchTerm)
-            && ((checkedCategories.length === 0) || checkedCategories.includes(product.category))
+            && ((checkedCategories.length === 0) || checkedCategories.includes(product.category?._id))
             && ((checkedTags.length === 0) || product.tags.find(tag => checkedTags.includes(tag)));
 
         return allProducts.filter(product => isMatched(product));
@@ -130,6 +144,34 @@ function ChecklistCheckingPage() {
         }
     };
 
+    const handleUnitClick = (product, unit) => {
+        const item = findItemByProduct(product);
+        let newUnit = unit;
+        if (product.units?.length > 1) {
+            const unitIndex = product.units?.findIndex(u => u === unit);
+            newUnit = product.units?.[unitIndex + 1] || product.units?.[0];
+        }
+        if (item) {
+            setChecklist({
+                ...checklist,
+                items: checklist.items.map(item => item.product._id === product._id ? {
+                    ...item,
+                    unit: newUnit,
+                } : item),
+            })
+
+        } else {
+            setChecklist({
+                ...checklist,
+                items: [...checklist.items, {
+                    ...EMPTY_ITEM,
+                    product: product,
+                    unit: newUnit,
+                }],
+            })
+        }
+    };
+
     const handleCheckClick = (product) => {
         const item = findItemByProduct(product);
         if (item) {
@@ -155,7 +197,7 @@ function ChecklistCheckingPage() {
 
     const handleItemClick = (product) => {
         setSelectedProduct(product);
-        setSelectedItem(findItemByProduct(product) || EMPTY_ITEM)
+        setSelectedItem(findItemByProduct(product) || EMPTY_ITEM);
         setItemDialogOpen(true);
     };
 
@@ -224,10 +266,15 @@ function ChecklistCheckingPage() {
 
     const renderProductRow = (product) => {
         const item = findItemByProduct(product) || EMPTY_ITEM;
+        const unit = item.unit || product.units?.[0];
+
+        if (hiddenFilters.some(filter => item[filter])) {
+            return null;
+        }
 
         return (
-            <div key={product._id} style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid lightgray' }}>
-                <div style={{ width: 40, textAlign: 'center' }}>
+            <div key={product._id} style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid lightgray', gap: 8 }}>
+                <div style={{ width: 32, textAlign: 'center' }}>
                     {(item.qty || item.checked) ? (
                         <ButtonBase
                             style={{ width: 40 }}
@@ -245,6 +292,15 @@ function ChecklistCheckingPage() {
                         </IconButton>
                     )}
                 </div>
+                {(product.units?.length > 0) && (
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => handleUnitClick(product, unit)}
+                    >
+                        {unit}
+                    </Button>
+                )}
                 <ButtonBase
                     style={{ flexGrow: 1, justifyContent: 'flex-start' }}
                     onClick={() => handleItemClick(product)}
@@ -273,18 +329,18 @@ function ChecklistCheckingPage() {
     };
 
     const renderByCategory = (category) => {
-        const productsToRender = products.filter(product => product.category === category);
+        const productsToRender = products.filter(product => product.category?._id === category._id);
 
         if (productsToRender.length === 0) {
             return null;
         }
 
         return (
-            <Accordion key={category} disableGutters defaultExpanded>
+            <Accordion key={category._id} disableGutters defaultExpanded>
                 <AccordionSummary
                     expandIcon={<ExpandMoreIcon />}
                 >
-                    {category}
+                    {category.name}
                 </AccordionSummary>
                 <AccordionDetails>
                     <div>
@@ -362,7 +418,6 @@ function ChecklistCheckingPage() {
                 </Box>
 
                 <Toolbar disableGutters>
-
                     <Box sx={{ flexGrow: 1 }} />
                     <Search value={search} onChange={(e) => setSearch(e.target.value)} />
                     <ProductFilter
@@ -419,6 +474,24 @@ function ChecklistCheckingPage() {
                         type="number"
                         inputProps={{ min: 0, inputMode: 'numeric', pattern: '[0-9]*' }}
                     />
+                    {(selectedProduct.units?.length > 1) && (
+                        <FormControl fullWidth>
+                            <InputLabel id="unit-label">Unit</InputLabel>
+                            <Select
+                                id="unit"
+                                labelId="unit-lebel"
+                                value={selectedItem.unit}
+                                label="Unit"
+                                onChange={(e) => {
+                                    setSelectedItem({ ...selectedItem, unit: e.target.value });
+                                }}
+                            >
+                                {selectedProduct.units.map((unit) => (
+                                    <MenuItem value={unit}>{unit}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    )}
                 </Box>
             </FormDialog>
             <FormDialog

@@ -5,7 +5,10 @@ import ChecklistAPI from '../api/checklistAPI';
 export const NEW_PRODUCT_TEMPLATE = {
     name: 'New Product',
     category: null,
+    order: 1,
     tags: [],
+    units: [],
+    codes: [],
     content: '',
 };
 
@@ -15,13 +18,15 @@ const initialState = {
     error: null,
 };
 
+const sortEntities = (entities) => _.sortBy(entities, ['order', 'name']);
+
 export const fetchProductList = createAsyncThunk('product/fetchProductList', async () => {
     const response = await ChecklistAPI.fetchProducts();
     const result = await response.json();
     if (!result.success) {
         return isRejectedWithValue(result);
     }
-    return _.sortBy(result.data, ['category', 'name']);
+    return result.data;
 });
 
 export const createProduct = createAsyncThunk('product/createProduct', async ({ data }) => {
@@ -54,13 +59,15 @@ export const productSlice = createSlice({
     extraReducers: (builder) => {
         builder
             .addCase(fetchProductList.fulfilled, (state, action) => {
-                state.entities = action.payload;
+                state.entities = sortEntities(action.payload);
             })
             .addCase(createProduct.fulfilled, (state, action) => {
                 state.entities.push(action.payload);
+                state.entities = sortEntities(state.entities);
             })
             .addCase(updateProduct.fulfilled, (state, action) => {
                 state.entities = state.entities.map(entity => entity._id === action.payload._id ? action.payload : entity);
+                state.entities = sortEntities(state.entities);
             })
             .addCase(deleteProduct.fulfilled, (state, action) => {
                 state.entities = state.entities.filter(entity => entity._id !== action.payload);
