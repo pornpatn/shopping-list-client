@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import InputLabel from '@mui/material/InputLabel';
@@ -19,6 +20,7 @@ import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlin
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AddIcon from '@mui/icons-material/Add';
 import { Accordion, AccordionSummary, AccordionDetails, ButtonBase } from '@mui/material';
+import { useConfirm } from "material-ui-confirm";
 import Search from '../../../molecules/Search';
 import ProductFilter from '../../../molecules/ProductFilter';
 import { selectCategories } from '../../../../store/categorySlice';
@@ -42,6 +44,7 @@ function ChecklistCheckingPage() {
     const navigate = useNavigate();
     const { id: checkListId } = useParams();
     const dispatch = useDispatch();
+    const confirm = useConfirm();
 
     const { isLogin } = useSessionHook();
     useEffect(() => {
@@ -70,6 +73,10 @@ function ChecklistCheckingPage() {
     const [hiddenFilters, setHiddenFilters] = useState([]);
     const [checkedCategories, setCheckedCategories] = useState([]);
     const [checkedTags, setCheckedTags] = useState([]);
+
+    const [hasChange, setHasChange] = useState(false);
+    const hasItems = checklist?.items.length > 0;
+    const hasQty = checklist?.items.some(item => item.qty);
 
     const filters = [
         {
@@ -119,7 +126,34 @@ function ChecklistCheckingPage() {
 
     const toggleNameMode = () => setNameEditMode(!nameEditMode);
 
-    const findItemByProduct = (product) => checklist.items.find(item => item.product._id === product._id);
+    const findItemByProduct = (product) => checklist.items.find(item => ((item.product === product._id) || (item.product._id === product._id)));
+
+    const handleChecklistResetClick = () => {
+        confirm({ description: "Clear checklist?" })
+        .then(() => {
+            dispatch(updateChecklist({ data: {
+                ...checklist,
+                items: []
+            }})).then(() => {
+                setHasChange(false);
+            });
+        })
+        .catch(() => {
+            // Reset cancelled
+        });
+    };
+
+    const handleChecklistSaveClick = () => {
+        dispatch(updateChecklist({ data: checklist })).then(() => {
+            setHasChange(false);
+        });
+    };
+
+    const handleChecklistReviewClick = () => {
+        dispatch(updateChecklist({ data: checklist })).then(() => {
+            navigate('review');
+        });
+    };
 
     const handleQtyClick = (product) => {
         const item = findItemByProduct(product);
@@ -143,6 +177,7 @@ function ChecklistCheckingPage() {
                 }],
             })
         }
+        setHasChange(true);
     };
 
     const handleUnitClick = (product, unit) => {
@@ -171,6 +206,7 @@ function ChecklistCheckingPage() {
                 }],
             })
         }
+        setHasChange(true);
     };
 
     const handleCheckClick = (product) => {
@@ -194,11 +230,17 @@ function ChecklistCheckingPage() {
                 }],
             })
         }
+        setHasChange(true);
     };
 
     const handleItemClick = (product) => {
         setSelectedProduct(product);
-        setSelectedItem(findItemByProduct(product) || EMPTY_ITEM);
+        const item = findItemByProduct(product);
+        setSelectedItem({
+            ...EMPTY_ITEM,
+            unit: product.units?.[0],
+            ...item,
+        });
         setItemDialogOpen(true);
     };
 
@@ -229,7 +271,7 @@ function ChecklistCheckingPage() {
                 }],
             })
         }
-
+        setHasChange(true);
         setItemDialogOpen(false);
     };
 
@@ -259,6 +301,7 @@ function ChecklistCheckingPage() {
                     product,
                 }],
             })
+            setHasChange(true);
             setAddItemDialogOpen(false);
         };
 
@@ -274,7 +317,7 @@ function ChecklistCheckingPage() {
         }
 
         return (
-            <div key={product._id} style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid lightgray', gap: 8 }}>
+            <div key={product._id} style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid lightgray', gap: 8, height: 40 }}>
                 <div style={{ width: 32, textAlign: 'center' }}>
                     {(item.qty || item.checked) ? (
                         <ButtonBase
@@ -438,21 +481,23 @@ function ChecklistCheckingPage() {
                 <Box sx={{ marginTop: 2, display: 'flex', justifyContent: 'center', gap: 1 }}>
                     <Button
                         variant="outlined"
-                        onClick={() => {
-                            dispatch(updateChecklist({ data: checklist }));
-                        }}
+                        color="warning"
+                        onClick={handleChecklistResetClick}
+                        disabled={!hasItems}
+                    >
+                        Reset
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        onClick={handleChecklistSaveClick}
+                        disabled={!hasChange}
                     >
                         Save
                     </Button>
                     <Button
                         variant="contained"
-                        // to={'review'}
-                        // component={Link}
-                        onClick={() => {
-                            dispatch(updateChecklist({ data: checklist })).then(() => {
-                                navigate('review');
-                            });
-                        }}
+                        onClick={handleChecklistReviewClick}
+                        disabled={!hasQty}
                     >
                         Review
                     </Button>
@@ -496,6 +541,15 @@ function ChecklistCheckingPage() {
                             </Select>
                         </FormControl>
                     )}
+                    {(selectedProduct.tags?.length > 0) && (
+                        <div>
+                            <span>Tag: </span>
+                            {selectedProduct.tags.map(tag => <Chip label={tag} size="small" sx={{ margin: 0.5 }} />)}
+                        </div>
+                    )}
+                    <Typography variant="body1">
+                        {selectedProduct.content}
+                    </Typography>
                 </Box>
             </FormDialog>
             <FormDialog
@@ -526,7 +580,6 @@ function ChecklistCheckingPage() {
                         }}
                         margin="normal"
                     />
-                    {/* Tags */}
                     <TextField
                         id="qty"
                         label="Qty"
