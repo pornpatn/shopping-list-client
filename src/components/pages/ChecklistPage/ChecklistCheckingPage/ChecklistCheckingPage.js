@@ -129,6 +129,7 @@ function ChecklistCheckingPage() {
                 items: checklist.items.map(item => item.product._id === product._id ? {
                     ...item,
                     qty: Number(item.qty) + 1,
+                    unit: product.units?.[0],
                 } : item),
             })
 
@@ -298,6 +299,9 @@ function ChecklistCheckingPage() {
                 >
                     <Typography variant="body1">{product.name}</Typography>
                 </ButtonBase>
+                {(product.units?.length === 1) && (
+                    <Typography variant="body2">{unit}</Typography>
+                )}
                 {(product.units?.length > 1) && (
                     <Button
                         variant="outlined"
@@ -474,7 +478,7 @@ function ChecklistCheckingPage() {
                         type="number"
                         inputProps={{ min: 0, inputMode: 'numeric', pattern: '[0-9]*' }}
                     />
-                    {(selectedProduct.units?.length > 1) && (
+                    {(selectedProduct.units?.length > 0) && (
                         <FormControl fullWidth>
                             <InputLabel id="unit-label">Unit</InputLabel>
                             <Select

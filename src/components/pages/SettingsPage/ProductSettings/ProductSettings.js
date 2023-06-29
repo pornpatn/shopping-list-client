@@ -38,7 +38,7 @@ import { selectCategories } from '../../../../store/categorySlice';
 import { selectTags, fetchTagList } from '../../../../store/tagSlice';
 import useSessionHook from '../../../../hooks/useSessionHook';
 
-const DEFAULT_UNITS = ['case', 'each', 'pack', 'bag'];
+const DEFAULT_UNITS = ['case', 'each', 'pack', 'bag', 'lb'];
 
 function ProductSettings() {
     const dispatch = useDispatch();
