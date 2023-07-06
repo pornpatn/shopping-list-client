@@ -1,14 +1,27 @@
 const BASE_API = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
+const getToken = () => {
+    try {
+        const serialisedState = localStorage.getItem("sessionState");
+        if (serialisedState === null) return undefined;
+        return JSON.parse(serialisedState)?.token;
+    } catch (e) {
+        console.warn(e);
+        return undefined;
+    }
+};
+
 const doGet = async (api) => fetch(`${BASE_API}${api}`, {
     method: 'GET',
+    headers: { 'Authorization': `Bearer ${getToken()}` },
 });
 
 const doPost = async (api, data = {}) => fetch(`${BASE_API}${api}`, {
     method: 'POST',
     headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`
     },
     body: JSON.stringify(data)
 });
@@ -17,13 +30,15 @@ const doPatch = async (api, data = {}) => fetch(`${BASE_API}${api}/${data._id}`,
     method: 'PATCH',
     headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`
     },
     body: JSON.stringify(data)
 });
 
 const doDelete = async (api, id) => fetch(`${BASE_API}${api}/${id}`, {
     method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${getToken()}` },
 });
 
 // Markets

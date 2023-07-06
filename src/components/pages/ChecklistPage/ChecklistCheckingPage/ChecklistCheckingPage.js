@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import Container from '@mui/material/Container';
@@ -31,7 +31,7 @@ import {
     selectProducts,
 } from '../../../../store/productSlice';
 import { selectChecklists, updateChecklist } from '../../../../store/checklistSlice';
-import useSessionHook from '../../../../hooks/useSessionHook';
+import { userContext } from '../../../../hooks/userContext';
 import FormDialog from '../../../molecules/FormDialog';
 
 const EMPTY_ITEM = {
@@ -46,12 +46,12 @@ function ChecklistCheckingPage() {
     const dispatch = useDispatch();
     const confirm = useConfirm();
 
-    const { isLogin } = useSessionHook();
+    const { profile } = useContext(userContext);
     useEffect(() => {
-        if (!isLogin) {
-            navigate("/login");
+        if (!profile) {
+            navigate("/login", { state: { to: "/checklists" }});
         }
-    }, [isLogin, navigate]);
+    }, [profile, navigate]);
 
     const categories = useSelector(selectCategories);
     const tags = useSelector(selectTags);

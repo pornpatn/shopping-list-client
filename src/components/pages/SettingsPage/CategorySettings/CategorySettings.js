@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
@@ -18,7 +18,7 @@ import {
     selectCategories as selectItems,
     NEW_CATEGORY_TEMPLATE as NEW_ITEM_TEMPLATE,
 } from '../../../../store/categorySlice';
-import useSessionHook from '../../../../hooks/useSessionHook';
+import { userContext } from '../../../../hooks/userContext';
 
 function CategorySettings() {
     const dispatch = useDispatch();
@@ -31,12 +31,12 @@ function CategorySettings() {
     const confirm = useConfirm();
 
     const navigate = useNavigate();
-    const { isLogin } = useSessionHook();
+    const { profile } = useContext(userContext);
     useEffect(() => {
-        if (!isLogin) {
-            navigate("/login");
+        if (!profile) {
+            navigate("/login", { state: { to: "/settings/categories" }});
         }
-    }, [isLogin, navigate]);
+    }, [profile, navigate]);
 
     const handleCreateClick = () => {
         setSelectedItem(NEW_ITEM_TEMPLATE);

@@ -1,35 +1,30 @@
-import React, { useEffect } from 'react';
+import React, { useContext } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
-import jwt_decode from 'jwt-decode';
-import { useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import { login, selectIsLogin } from '../../../store/sessionSlice';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { userContext } from '../../../hooks/userContext';
 
 function LoginPage() {
-    const dispatch = useDispatch();
     const navigate = useNavigate();
+    const { state } = useLocation();
+    const { profile, loginUser } = useContext(userContext);
 
-    const isLogin = useSelector(selectIsLogin);
-
-    const loginSuccess = ({ credential }) => {
-        const profile = jwt_decode(credential);
-        dispatch(login({ profile, token: credential }));
+    const handleLoginSuccess = (credentialResponse) => {
+        loginUser(credentialResponse);
+        navigate(state.to ?? "/");
     };
 
-    const loginFailure = (err) => {
-        console.error('failed:', err);
+    const handleLoginFailure = () => {
+        console.error('login failed');
     };
 
-    useEffect(() => {
-        if (isLogin) {
-            navigate("/");
-        }
-    }, [isLogin, navigate]);
+    if (profile) {
+        navigate("/");
+    }
 
     return (
         <GoogleLogin
-            onSuccess={loginSuccess}
-            onFailure={loginFailure}
+            onSuccess={handleLoginSuccess}
+            onFailure={handleLoginFailure}
             useOneTap
             auto_select
         />

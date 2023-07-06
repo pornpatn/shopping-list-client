@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import Container from '@mui/material/Container';
@@ -17,7 +17,7 @@ import {
     selectChecklists,
     updateChecklist,
 } from '../../../../store/checklistSlice';
-import useSessionHook from '../../../../hooks/useSessionHook';
+import { userContext } from '../../../../hooks/userContext';
 
 function ChecklistReviewPage() {
     const navigate = useNavigate();
@@ -32,12 +32,12 @@ function ChecklistReviewPage() {
     const [checklist, setChecklist] = useState(null);
     const [checkedIds, setCheckedIds] = useState([]);
 
-    const { isLogin } = useSessionHook();
+    const { profile } = useContext(userContext);
     useEffect(() => {
-        if (!isLogin) {
-            navigate("/login");
+        if (!profile) {
+            navigate("/login", { state: { to: "/checklists" }});
         }
-    }, [isLogin, navigate]);
+    }, [profile, navigate]);
 
     useEffect(() => {
         setChecklist(currentChecklist);

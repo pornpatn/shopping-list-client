@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
@@ -8,7 +8,7 @@ import CardActions from '@mui/material/CardActions';
 import CardActionArea from '@mui/material/CardActionArea';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import useSessionHook from '../../../hooks/useSessionHook';
+import { userContext } from '../../../hooks/userContext';
 
 const cards = [
     {
@@ -54,12 +54,13 @@ function SettingsCard({ card }) {
 
 function SettingsPage() {
     const navigate = useNavigate();
-    const { isLogin } = useSessionHook();
+    const { profile } = useContext(userContext);
+
     useEffect(() => {
-        if (!isLogin) {
-            navigate("/login");
+        if (!profile) {
+            navigate("/login", { state: { to: "/settings" }});
         }
-    }, [isLogin, navigate]);
+    }, [profile, navigate]);
 
     return (
         <Container maxWidth="xl">
