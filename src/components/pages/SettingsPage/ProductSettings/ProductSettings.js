@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useContext } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
@@ -36,7 +36,7 @@ import {
 } from '../../../../store/productSlice';
 import { selectCategories } from '../../../../store/categorySlice';
 import { selectTags, fetchTagList } from '../../../../store/tagSlice';
-import useSessionHook from '../../../../hooks/useSessionHook';
+import { userContext } from '../../../../hooks/userContext';
 
 const DEFAULT_UNITS = ['case', 'each', 'pack', 'bag', 'lb'];
 
@@ -56,12 +56,12 @@ function ProductSettings() {
     const confirm = useConfirm();
 
     const navigate = useNavigate();
-    const { isLogin } = useSessionHook();
+    const { profile } = useContext(userContext);
     useEffect(() => {
-        if (!isLogin) {
-            navigate("/login");
+        if (!profile) {
+            navigate("/login", { state: { to: "/settings/products" }});
         }
-    }, [isLogin, navigate]);
+    }, [profile, navigate]);
 
     const [search, setSearch] = useState("");
 

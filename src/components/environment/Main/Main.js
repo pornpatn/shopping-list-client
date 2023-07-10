@@ -20,7 +20,6 @@ import { fetchTagList } from '../../../store/tagSlice';
 import { fetchProductList } from '../../../store/productSlice';
 import { fetchMarketList } from '../../../store/marketSlice';
 import { fetchChecklistList, fetchChecklistById } from '../../../store/checklistSlice';
-import useSessionHook from '../../../hooks/useSessionHook';
 
 const basename = process.env.REACT_APP_BASENAME || '/';
 
@@ -122,13 +121,6 @@ const getRouter = (dispatch) => createBrowserRouter([
 
 function Main() {
     const dispatch = useDispatch();
-    const { isReady } = useSessionHook();
-
-    if (!isReady) {
-        return (
-            <div>Loading...</div>
-        );
-    }
 
     return (
         <RouterProvider router={getRouter(dispatch)} />

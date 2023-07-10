@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import moment from 'moment';
@@ -24,18 +24,17 @@ import {
     selectChecklists, 
     NEW_CHECKLIST_TEMPLATE,
 } from '../../../store/checklistSlice';
-import useSessionHook from '../../../hooks/useSessionHook';
+import { userContext } from '../../../hooks/userContext';
 
 function ChecklistPage() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-
-    const { isLogin } = useSessionHook();
+    const { profile } = useContext(userContext);
     useEffect(() => {
-        if (!isLogin) {
-            navigate("/login");
+        if (!profile) {
+            navigate("/login", { state: { to: "/checklists" }});
         }
-    }, [isLogin, navigate]);
+    }, [profile, navigate]);
 
     const unSortedChecklists = useSelector(selectChecklists);
     const checklists = _.orderBy(unSortedChecklists, (item) => (item.updatedAt || item.createdAt), ['desc']);

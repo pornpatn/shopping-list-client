@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
@@ -18,7 +18,7 @@ import {
     selectMarkets as selectItems,
     NEW_MARKET_TEMPLATE as NEW_ITEM_TEMPLATE,
 } from '../../../../store/marketSlice';
-import useSessionHook from '../../../../hooks/useSessionHook';
+import { userContext } from '../../../../hooks/userContext';
 
 function MarketSettings() {
     const dispatch = useDispatch();
@@ -31,12 +31,12 @@ function MarketSettings() {
     const confirm = useConfirm();
 
     const navigate = useNavigate();
-    const { isLogin } = useSessionHook();
+    const { profile } = useContext(userContext);
     useEffect(() => {
-        if (!isLogin) {
-            navigate("/login");
+        if (!profile) {
+            navigate("/login", { state: { to: "/settings/markets" }});
         }
-    }, [isLogin, navigate]);
+    }, [profile, navigate]);
 
     const handleCreateClick = () => {
         setSelectedItem(NEW_ITEM_TEMPLATE);
