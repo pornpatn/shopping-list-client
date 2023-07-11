@@ -4,6 +4,8 @@ import { Provider } from 'react-redux';
 import { ConfirmProvider } from "material-ui-confirm";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import jwt_decode from 'jwt-decode';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import {userContext} from '../../../hooks/userContext';
 import Main from '../Main';
 
@@ -63,9 +65,11 @@ function Root({ store }) {
         <Provider store={store}>
             <ConfirmProvider>
                 <GoogleOAuthProvider clientId={client_id}>
-                    <userContext.Provider value={{ profile, token, ready, loginUser, logoutUser }}>
-                        <Main />
-                    </userContext.Provider>
+                    <LocalizationProvider dateAdapter={AdapterMoment}>
+                        <userContext.Provider value={{ profile, token, ready, loginUser, logoutUser }}>
+                            <Main />
+                        </userContext.Provider>
+                    </LocalizationProvider>
                 </GoogleOAuthProvider>
             </ConfirmProvider>
         </Provider>

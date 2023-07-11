@@ -19,6 +19,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AddIcon from '@mui/icons-material/Add';
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import { Accordion, AccordionSummary, AccordionDetails, ButtonBase } from '@mui/material';
 import { useConfirm } from "material-ui-confirm";
 import Search from '../../../molecules/Search';
@@ -180,6 +181,13 @@ function ChecklistCheckingPage() {
         setHasChange(true);
     };
 
+    const handleCancelClick = (product) => {
+        setChecklist({
+            ...checklist,
+            items: checklist.items.filter(item => item.product._id !== product._id),
+        });
+    };
+
     const handleUnitClick = (product, unit) => {
         const item = findItemByProduct(product);
         let newUnit = unit;
@@ -336,6 +344,11 @@ function ChecklistCheckingPage() {
                         </IconButton>
                     )}
                 </div>
+                {(item.qty) > 0 && (
+                    <IconButton onClick={() => handleCancelClick(product)}>
+                        <CancelOutlinedIcon />
+                    </IconButton>
+                )}
                 <ButtonBase
                     style={{ flexGrow: 1, justifyContent: 'flex-start' }}
                     onClick={() => handleItemClick(product)}

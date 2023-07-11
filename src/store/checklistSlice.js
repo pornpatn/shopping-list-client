@@ -3,8 +3,8 @@ import ChecklistAPI from '../api/checklistAPI';
 
 export const NEW_CHECKLIST_TEMPLATE = {
     name: 'New Checklist',
-    items: [],
     status: 'in-progress',
+    items: [],
     content: '',
 };
 

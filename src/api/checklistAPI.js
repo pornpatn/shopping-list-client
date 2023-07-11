@@ -82,12 +82,24 @@ export const updateChecklist = async (data) => doPatch('/checklist', data);
 
 export const deleteChecklist = async (id) => doDelete('checklist', id);
 
+// Order
+export const fetchOrders = async () => doGet('/order');
+
+export const fetchOrderById = async (id) => doGet(`/order/${id}`);
+
+export const createOrder = async (data) => doPost('/order', data);
+
+export const updateOrder = async (data) => doPatch('/order', data);
+
+export const deleteOrder = async (id) => doDelete('order', id);
+
 const ChecklistAPI = {
 fetchMarkets, createMarket, updateMarket, deleteMarket,
     fetchProducts, createProduct, updateProduct, deleteProduct,
     fetchCategories, createCategory, updateCategory, deleteCategory,
     fetchTags, 
     fetchChecklists, fetchChecklistById, createChecklist, updateChecklist, deleteChecklist,
+    fetchOrders, fetchOrderById, createOrder, updateOrder, deleteOrder,
 };
 
 export default ChecklistAPI;
