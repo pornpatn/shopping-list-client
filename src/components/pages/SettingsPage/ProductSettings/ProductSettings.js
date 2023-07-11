@@ -19,8 +19,8 @@ import ListItemText from '@mui/material/ListItemText';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
-import RemoveIcon from '@mui/icons-material/Remove';
-import AddIcon from '@mui/icons-material/Add';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { useConfirm } from "material-ui-confirm";
 import PageHeader from '../../../molecules/PageHeader';
 import Search from '../../../molecules/Search';
@@ -248,11 +248,11 @@ function ProductSettings() {
                 secondaryAction={
                     <div>
                         <IconButton onClick={handleOrderMinusClick(item)}>
-                            <RemoveIcon />
+                            <KeyboardArrowDownIcon />
                         </IconButton>
                         <Chip label={item.order ?? '-'} variant="outlined" color="default" />
                         <IconButton onClick={handleOrderPlusClick(item)}>
-                            <AddIcon />
+                            <KeyboardArrowUpIcon />
                         </IconButton>
                     </div>
                 }

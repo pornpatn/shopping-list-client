@@ -1,49 +1,63 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
+import moment from 'moment';
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select from '@mui/material/Select';
+import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { List, ListItem, ListItemButton, ListItemIcon, Checkbox, ListItemText, Toolbar } from '@mui/material';
 import { useConfirm } from "material-ui-confirm";
-import FormDialog from '../../../molecules/FormDialog';
 import { selectCategories } from '../../../../store/categorySlice';
 import { selectProducts } from '../../../../store/productSlice';
-// import { selectMarkets } from '../../../../store/marketSlice';
+import { selectMarkets } from '../../../../store/marketSlice';
 import {
     selectChecklists,
     updateChecklist,
 } from '../../../../store/checklistSlice';
+import {
+    createOrder,
+    NEW_ORDER_TEMPLATE,
+} from '../../../../store/orderSlice';
 import { userContext } from '../../../../hooks/userContext';
 
 function ChecklistReviewPage() {
     const navigate = useNavigate();
-    const { id: checkListId } = useParams();
+    const { id: checklistId } = useParams();
     const dispatch = useDispatch();
     const confirm = useConfirm();
     const categories = useSelector(selectCategories);
     const products = useSelector(selectProducts);
-    // const markets = useSelector(selectMarkets);
+    const markets = useSelector(selectMarkets);
     const checklists = useSelector(selectChecklists);
-    const currentChecklist = checklists.find(c => c._id === checkListId);
+    const currentChecklist = checklists.find(c => c._id === checklistId);
     const [checklist, setChecklist] = useState(null);
     const [checkedIds, setCheckedIds] = useState([]);
+
+    const [marketId, setMarketId] = useState('');
+    const [scheduleDeliveryDate, setScheduleDeliveryDate] = useState(moment().add(1, 'day'));
+    const [content, setContent] = useState('');
+
+    const today = moment();
 
     const { profile } = useContext(userContext);
     useEffect(() => {
         if (!profile) {
-            navigate("/login", { state: { to: "/checklists" }});
+            navigate("/login", { state: { to: "/checklists" } });
         }
     }, [profile, navigate]);
 
     useEffect(() => {
         setChecklist(currentChecklist);
     }, [currentChecklist]);
-
-    const [orderDialogOpen, setOrderDialogOpen] = useState(false);
 
     const handleToggleAll = (e) => {
         if (e.target.checked) {
@@ -125,39 +139,54 @@ function ChecklistReviewPage() {
         );
     };
 
-    const handleDoneClick = () => {
-        const markChecklistDone = () => {
-            dispatch(updateChecklist({
-                data: {
-                    ...checklist,
-                    status: 'done',
-                }
-            })).then(() => {
-                navigate("/checklists");
-            });
-        };
+    const changeChecklistStatus = (status) => {
+        dispatch(updateChecklist({
+            data: {
+                _id: checklistId,
+                status,
+            }
+        })).then(() => {
+            navigate("/checklists");
+        });
+    };
 
+    const handleDoneClick = () => {
         confirm({ description: "This action will mark checklist done." })
             .then(() => {
-                markChecklistDone();
+                changeChecklistStatus('done');
             })
             .catch(() => {
                 // Done cancelled
             });
     };
 
-    // const handleOrderClick = () => {
-    //     setOrderDialogOpen(true);
-    // };
+    const isItemInOrder = (item) => ((item.qty > 0) && checkedIds.includes(item.product._id));
 
-    const handleOrderDialogClose = () => {
-        setOrderDialogOpen(false);
-    };
+    const handleOrderClick = (e) => {
+        e.preventDefault();
 
-    const handleOrderSave = () => {
-        // create order
+        const itemsToOrder = checklist.items.filter(item => isItemInOrder(item)).map(item => ({
+            product: item.product,
+            qty: item.qty,
+            unit: item.unit,
+        }));
 
-        setOrderDialogOpen(false);
+        const newOrder = {
+            ...NEW_ORDER_TEMPLATE,
+            name: checklist.name,
+            items: itemsToOrder,
+            checklist: checklistId,
+            market: marketId,
+            scheduleDeliveryDate: scheduleDeliveryDate.format(),
+            content,
+        };
+
+        dispatch(createOrder({ data: newOrder })).then(({ payload }) => 
+        {
+            if (payload) {
+                changeChecklistStatus('ordered');
+            }
+        });
     };
 
     if (!checklist) {
@@ -196,6 +225,37 @@ function ChecklistReviewPage() {
                 <Box sx={{ flexGrow: 1 }} />
             </Box>
 
+            <div>
+                <FormControl fullWidth margin="normal">
+                    <InputLabel id="category-label">Market / Supplier</InputLabel>
+                    <Select
+                        id="market"
+                        required
+                        labelId="market-lebel"
+                        value={marketId}
+                        label="Market / Supplier"
+                        onChange={(event) => {
+                            setMarketId(event.target.value);
+                        }}
+                    >
+                        {markets.map((market) => (
+                            <MenuItem key={market._id} value={market._id}>{market.name}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+                <FormControl margin="normal">
+                    <DatePicker
+                        label="Delivery Date"
+                        inputFormat="MM/DD/YYYY"
+                        minDate={today}
+                        value={scheduleDeliveryDate}
+                        onChange={setScheduleDeliveryDate}
+                        slotProps={{ textField: { margin: 'normal' } }}
+                        // renderInput={(params) => <TextField margin="normal" {...params} />}
+                    />
+                </FormControl>
+            </div>
+
             <Toolbar disableGutters>
                 <Checkbox
                     edge="start"
@@ -205,10 +265,25 @@ function ChecklistReviewPage() {
                     checked={checkedIds.length === checklist.items.length}
                     indeterminate={(checkedIds.length > 0) && (checkedIds.length !== checklist.items.length)}
                 />
-                <Typography variant="body2">Select All</Typography>
+                <Typography variant="body2">Select All Items</Typography>
             </Toolbar>
 
             {categories.map(category => renderByCategory(category))}
+
+            <div>
+                <FormControl fullWidth margin="normal">
+                    <TextField
+                        id="content"
+                        label="Content"
+                        fullWidth
+                        multiline
+                        rows={4}
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        margin="normal"
+                    />
+                </FormControl>
+            </div>
 
             <Box sx={{ marginTop: 2, display: 'flex', justifyContent: 'center', gap: 1 }}>
                 <Button
@@ -218,34 +293,22 @@ function ChecklistReviewPage() {
                 >
                     Back
                 </Button>
-                {/* <Button
+                <Button
+                    variant="outlined"
+                    color="primary"
+                    onClick={handleDoneClick}
+                >
+                    Close
+                </Button>
+                <Button
                     variant="contained"
                     color="primary"
                     onClick={handleOrderClick}
                 >
                     Order
-                </Button> */}
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleDoneClick}
-                >
-                    Done
                 </Button>
-            </Box>
 
-            <FormDialog
-                open={orderDialogOpen}
-                onClose={handleOrderDialogClose}
-                onSave={handleOrderSave}
-                title={'Order'}
-            >
-                <Box component={'form'} onSubmit={handleOrderSave}>
-                    Select Market
-                    Select how to export
-                    Select delivery date
-                </Box>
-            </FormDialog>
+            </Box>
 
             {/* <Box sx={{ paddingTop: 2 }}>
                 <Typography
